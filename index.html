@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>KILLXBAN — Control Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --p:#8b5cf6;
+  --p2:#a78bfa;
+  --p3:#6d28d9;
+  --bg:#070712;
+  --bg2:#0d0d1f;
+  --card:rgba(20,18,40,.55);
+  --border:rgba(139,92,246,.28);
+  --text:#eae6ff;
+  --muted:#9a94c4;
+  --green:#22c55e;
+  --red:#ef4444;
+  --amber:#f59e0b;
+  --radius:14px;
+  --font-head:'Orbitron',sans-serif;
+  --font-body:'Rajdhani',sans-serif;
+  --font-mono:'Share Tech Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;
+  min-height:100vh;
+}
+button{font-family:var(--font-body);cursor:pointer;border:none;outline:none;color:inherit;background:none}
+input,select,textarea{font-family:var(--font-body);outline:none;color:var(--text)}
+.mono{font-family:var(--font-mono)}
+.head{font-family:var(--font-head);letter-spacing:.08em}
+
+/* ===== animated gradient fallback layer (behind videos) ===== */
+.grad-fallback{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(109,40,217,.35), transparent 60%),
+    radial-gradient(ellipse 70% 50% at 85% 80%, rgba(139,92,246,.28), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 50% 50%, rgba(168,85,247,.18), transparent 70%),
+    linear-gradient(160deg,#0a0818 0%,#070712 50%,#0d0a1f 100%);
+  animation:gradShift 14s ease-in-out infinite alternate;
+}
+@keyframes gradShift{
+  0%{filter:hue-rotate(0deg) brightness(1)}
+  100%{filter:hue-rotate(25deg) brightness(1.15)}
+}
+.bg-video{
+  position:fixed;inset:0;z-index:1;width:100%;height:100%;object-fit:cover;
+  opacity:.55;pointer-events:none;
+}
+.bg-overlay{
+  position:fixed;inset:0;z-index:2;pointer-events:none;
+  background:linear-gradient(180deg, rgba(7,7,18,.55) 0%, rgba(7,7,18,.45) 50%, rgba(7,7,18,.65) 100%);
+}
+#app{position:relative;z-index:5}
+
+/* ===== generic card ===== */
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  box-shadow:0 0 24px rgba(139,92,246,.08), inset 0 1px 0 rgba(255,255,255,.04);
+}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:11px 18px;border-radius:10px;font-weight:600;font-size:15px;letter-spacing:.04em;
+  border:1px solid var(--border);background:rgba(139,92,246,.12);color:var(--text);
+  transition:.2s;
+}
+.btn:hover{background:rgba(139,92,246,.25);box-shadow:0 0 18px rgba(139,92,246,.35)}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(--p),var(--p3));border-color:var(--p);color:#fff;box-shadow:0 0 20px rgba(139,92,246,.4)}
+.btn-danger{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.5);color:#fca5a5}
+.btn-ghost{background:transparent;border-color:rgba(255,255,255,.12);color:var(--muted)}
+.btn:disabled{opacity:.45;cursor:not-allowed;pointer-events:none}
+.input{
+  width:100%;padding:12px 14px;border-radius:10px;background:rgba(10,8,24,.7);
+  border:1px solid var(--border);font-size:15px;transition:.2s;
+}
+.input:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(139,92,246,.18)}
+label.field{display:block;margin-bottom:14px}
+label.field span{display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;font-weight:600}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1px solid}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.glow-text{text-shadow:0 0 12px rgba(139,92,246,.8)}
+
+/* ===== LOGIN ===== */
+#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-box{width:100%;max-width:380px;padding:34px 28px;text-align:center}
+.logo-img{width:120px;height:120px;object-fit:contain;border-radius:20px;box-shadow:0 0 30px rgba(139,92,246,.55);margin:0 auto 14px;display:block;background:rgba(139,92,246,.08);border:1px solid var(--border);padding:6px}
+.logo-mark{
+  width:74px;height:74px;margin:0 auto 14px;border-radius:20px;
+  background:linear-gradient(135deg,var(--p),var(--p3));
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 30px rgba(139,92,246,.55);
+  font-family:var(--font-head);font-weight:900;font-size:28px;color:#fff;
+}
+.login-title{font-family:var(--font-head);font-size:26px;font-weight:900;letter-spacing:.22em;margin-bottom:4px}
+.login-sub{color:var(--muted);font-size:13px;letter-spacing:.25em;text-transform:uppercase;margin-bottom:26px}
+.login-error{color:#fca5a5;font-size:13px;min-height:18px;margin:8px 0;font-weight:600}
+.seed-note{margin-top:18px;font-size:11px;color:var(--muted);letter-spacing:.05em;line-height:1.6}
+
+/* ===== SPLASH ===== */
+#splashScreen{position:fixed;inset:0;z-index:50;display:none;overflow:hidden;background:radial-gradient(ellipse 80% 60% at 20% 10%, rgba(109,40,217,.5), transparent 60%), radial-gradient(ellipse 70% 50% at 85% 80%, rgba(139,92,246,.4), transparent 60%), linear-gradient(160deg,#0a0818,#070712 50%,#0d0a1f);animation:gradShift 14s ease-in-out infinite alternate}
+#splashScreen.active{display:block}
+#splashVideo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.7}
+.splash-content{display:none}
+.splash-brand{font-family:var(--font-head);font-size:clamp(34px,9vw,72px);font-weight:900;letter-spacing:.25em;background:linear-gradient(135deg,#fff,var(--p2));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 20px rgba(139,92,246,.6))}
+.splash-tag{margin-top:10px;font-size:13px;letter-spacing:.5em;color:var(--muted);text-transform:uppercase}
+.splash-bar{margin-top:34px;width:220px;height:3px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden}
+.splash-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--p),var(--p2));box-shadow:0 0 10px var(--p)}
+
+/* ===== APP SHELL ===== */
+#appShell{display:none;min-height:100vh;padding-bottom:84px}
+#appShell.active{display:block}
+.topbar{
+  position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;
+  padding:10px 14px;background:rgba(7,7,18,.75);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+}
+.hamburger{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);flex-shrink:0}
+.avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid var(--p);box-shadow:0 0 12px rgba(139,92,246,.5);flex-shrink:0;background:linear-gradient(135deg,var(--p),var(--p3));display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-family:var(--font-head)}
+.welcome{flex:1;min-width:0}
+.welcome b{display:block;font-family:var(--font-head);font-size:12px;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.welcome small{color:var(--muted);font-size:11px;letter-spacing:.1em}
+.top-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.icon-btn{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);background:rgba(139,92,246,.08);transition:.2s}
+.icon-btn:hover{background:rgba(139,92,246,.2)}
+.clock-box{text-align:right;line-height:1.15}
+.clock-time{font-family:var(--font-mono);font-size:14px;color:var(--p2)}
+.clock-date{font-size:10px;color:var(--muted);letter-spacing:.04em}
+.live-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.5);color:#fca5a5;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.15em}
+.live-badge .dot{background:var(--red);animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.2}}
+
+.page{padding:14px;max-width:900px;margin:0 auto}
+.section-title{font-family:var(--font-head);font-size:13px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;margin:18px 4px 10px;font-weight:700;display:flex;align-items:center;gap:8px}
+.section-title::before{content:"";width:4px;height:14px;background:var(--p);border-radius:2px;box-shadow:0 0 8px var(--p)}
+
+/* banner video */
+.banner-video-wrap{position:relative;height:180px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);margin-bottom:14px}
+.banner-video-wrap video{width:100%;height:100%;object-fit:cover;opacity:.6}
+.banner-video-wrap .cap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:14px;background:linear-gradient(180deg,transparent 40%,rgba(7,7,18,.85))}
+.banner-video-wrap .cap b{font-family:var(--font-head);font-size:15px;letter-spacing:.15em}
+.banner-video-wrap .cap small{color:var(--muted);font-size:11px;letter-spacing:.1em}
+/* banner photo (click -> WA) */
+.banner-photo{
+  position:relative;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);
+  padding:20px 18px;cursor:pointer;margin-bottom:14px;
+  background:linear-gradient(120deg,rgba(139,92,246,.25),rgba(34,197,94,.18) 60%,rgba(139,92,246,.1));
+  display:flex;align-items:center;gap:14px;transition:.25s;
+}
+.banner-photo:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(34,197,94,.25)}
+.banner-photo .wa-icon{width:46px;height:46px;border-radius:14px;background:#22c55e;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 18px rgba(34,197,94,.5)}
+.banner-photo b{font-family:var(--font-head);font-size:14px;letter-spacing:.1em;display:block}
+.banner-photo small{color:var(--muted);font-size:12px}
+
+/* monitoring grid */
+.mon-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mon-item{padding:12px;border-radius:10px;background:rgba(10,8,24,.5);border:1px solid var(--border)}
+.mon-item small{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.mon-item b{font-family:var(--font-mono);font-size:18px;color:var(--p2)}
+.strength{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;letter-spacing:.1em}
+.strength.stabil{color:var(--green)}
+.strength.lambat{color:var(--red)}
+.strength .dot{animation:blink 1.2s infinite}
+
+/* identity card */
+.id-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px dashed rgba(139,92,246,.15);font-size:14px}
+.id-row:last-child{border-bottom:none}
+.id-row span{color:var(--muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.id-row b{font-family:var(--font-mono);font-weight:400}
+.pw-toggle{font-size:11px;color:var(--p2);border:1px solid var(--border);padding:3px 8px;border-radius:6px;margin-left:8px}
+
+/* quick actions */
+.quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.quick-btn{display:flex;flex-direction:column;align-items:center;gap:7px;padding:14px 6px;border-radius:12px;border:1px solid var(--border);background:rgba(139,92,246,.07);transition:.2s;font-size:11px;font-weight:600;letter-spacing:.05em}
+.quick-btn:hover{background:rgba(139,92,246,.2);transform:translateY(-2px)}
+.quick-btn .qi{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--p),var(--p3));display:flex;align-items:center;justify-content:center;box-shadow:0 0 12px rgba(139,92,246,.4)}
+.warn-panel{padding:12px 14px;border-radius:10px;border:1px solid rgba(245,158,11,.4);background:rgba(245,158,11,.08);font-size:13px;line-height:1.5;color:#fcd34d;margin-top:12px}
+.note-panel{padding:12px 14px;border-radius:10px;border:1px solid rgba(34,197,94,.35);background:rgba(34,197,94,.07);font-size:13px;line-height:1.5;color:#86efac;margin-top:10px}
+
+/* bottom nav */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:30;display:flex;
+  background:rgba(10,8,24,.92);backdrop-filter:blur(14px);border-top:1px solid var(--border);
+  padding:8px 0 calc(8px + env(safe-area-inset-bottom));
+}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:10px;font-weight:700;letter-spacing:.15em;padding:6px 0;transition:.2s}
+.nav-btn.active{color:var(--p2)}
+.nav-btn.active .qi{background:linear-gradient(135deg,var(--p),var(--p3));box-shadow:0 0 14px rgba(139,92,246,.5)}
+.nav-btn .qi{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;transition:.2s}
+
+/* sidebar drawer */
+.drawer-backdrop{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:.3s}
+.drawer-backdrop.active{opacity:1;pointer-events:auto}
+#sidebar{
+  position:fixed;top:0;left:0;bottom:0;width:290px;max-width:82vw;z-index:41;
+  background:linear-gradient(180deg,#0d0b1f,#070712);border-right:1px solid var(--border);
+  transform:translateX(-105%);transition:transform .35s cubic-bezier(.2,.8,.2,1);
+  display:flex;flex-direction:column;padding:20px 16px;overflow-y:auto;
+}
+#sidebar.active{transform:translateX(0)}
+.side-user{display:flex;align-items:center;gap:12px;padding-bottom:16px;border-bottom:1px solid var(--border);margin-bottom:12px}
+.side-user .avatar{width:52px;height:52px;font-size:18px}
+.side-user b{font-family:var(--font-head);font-size:14px;display:block}
+.side-menu button{width:100%;display:flex;align-items:center;gap:12px;padding:12px 10px;border-radius:10px;font-size:14px;font-weight:600;color:var(--text);text-align:left;transition:.15s;margin-bottom:2px}
+.side-menu button:hover{background:rgba(139,92,246,.15)}
+.side-menu button .qi{width:30px;height:30px;border-radius:8px;background:rgba(139,92,246,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.side-menu button.disabled{opacity:.4;pointer-events:none}
+.soon-tag{margin-left:auto;background:rgba(245,158,11,.2);color:#fcd34d;border:1px solid rgba(245,158,11,.5);padding:2px 8px;border-radius:999px;font-size:9px;font-weight:700;letter-spacing:.1em}
+.side-section{font-size:10px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin:14px 6px 8px;font-weight:700}
+.logout-btn{margin-top:auto;padding-top:16px}
+
+/* overlay slide-in from right */
+.overlay{
+  position:fixed;inset:0;z-index:45;background:var(--bg);
+  transform:translateX(100%);transition:transform .35s cubic-bezier(.2,.8,.2,1);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.overlay.active{transform:translateX(0)}
+.overlay-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);background:rgba(13,11,31,.9);backdrop-filter:blur(10px);flex-shrink:0}
+.overlay-head h2{font-family:var(--font-head);font-size:15px;letter-spacing:.15em;flex:1}
+.back-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px}
+.overlay-body{flex:1;overflow-y:auto;padding:16px;max-width:720px;width:100%;margin:0 auto}
+
+/* tools tab */
+.tools-search{margin-bottom:14px}
+.tools-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tool-card{
+  position:relative;border-radius:14px;padding:16px;border:1px solid var(--border);
+  background:var(--card);cursor:pointer;transition:.25s;overflow:hidden;min-height:110px;
+  display:flex;flex-direction:column;justify-content:flex-end;
+}
+.tool-card:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(139,92,246,.25)}
+.tool-card.big{grid-column:1/-1;min-height:150px;background:linear-gradient(135deg,rgba(139,92,246,.35),rgba(109,40,217,.2));border-color:var(--p)}
+.tool-card .t-icon{position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:10px;background:rgba(139,92,246,.25);display:flex;align-items:center;justify-content:center}
+.tool-card b{font-family:var(--font-head);font-size:13px;letter-spacing:.08em;display:block}
+.tool-card small{color:var(--muted);font-size:11px}
+.tool-card.soon{opacity:.55;pointer-events:none}
+
+/* AI placeholder */
+.ai-placeholder{text-align:center;padding:60px 20px}
+.ai-orb{width:110px;height:110px;margin:0 auto 20px;border-radius:50%;background:radial-gradient(circle at 30% 30%,var(--p2),var(--p3) 60%,#2e1065);box-shadow:0 0 50px rgba(139,92,246,.6);animation:float 3s ease-in-out infinite;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-size:30px;font-weight:900;color:#fff}
+@keyframes float{50%{transform:translateY(-8px)}}
+
+/* table */
+.tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;min-width:560px;font-size:13px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid rgba(139,92,246,.12)}
+th{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);background:rgba(139,92,246,.08)}
+tr:last-child td{border-bottom:none}
+.row-actions{display:flex;gap:6px;flex-wrap:wrap}
+.mini-btn{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;border:1px solid var(--border);background:rgba(139,92,246,.1)}
+.mini-btn.danger{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4);color:#fca5a5}
+.mini-btn.ok{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.4);color:#86efac}
+select.mini-sel{padding:4px 8px;border-radius:6px;background:rgba(10,8,24,.8);border:1px solid var(--border);font-size:12px}
+
+/* moderasi progress */
+.prog-panel{margin-top:16px;padding:16px;border-radius:12px;border:1px solid var(--border);background:rgba(10,8,24,.6);display:none}
+.prog-panel.active{display:block}
+.prog-counter{font-family:var(--font-mono);font-size:34px;text-align:center;color:var(--p2);text-shadow:0 0 16px rgba(139,92,246,.6)}
+.prog-bar{height:10px;border-radius:6px;background:rgba(255,255,255,.08);overflow:hidden;margin:10px 0}
+.prog-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--p3),var(--p2));box-shadow:0 0 12px var(--p);transition:width .1s linear}
+.prog-pct{text-align:center;font-family:var(--font-mono);font-size:13px;color:var(--muted)}
+.prog-log{margin-top:12px;height:140px;overflow-y:auto;background:#05050d;border:1px solid var(--border);border-radius:8px;padding:10px;font-family:var(--font-mono);font-size:11px;line-height:1.7;color:#a7f3d0}
+.prog-status{text-align:center;font-weight:700;letter-spacing:.2em;font-size:12px;margin-top:8px;color:var(--amber);animation:blink .8s infinite}
+
+/* modal */
+.modal-backdrop{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;padding:20px}
+.modal-backdrop.active{display:flex}
+.modal{max-width:380px;width:100%;padding:24px;border-radius:16px;background:linear-gradient(180deg,#14112b,#0a0818);border:1px solid var(--p);box-shadow:0 0 50px rgba(139,92,246,.4);text-align:center}
+.modal h3{font-family:var(--font-head);font-size:18px;letter-spacing:.1em;margin-bottom:10px}
+.modal p{color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:18px;word-break:break-all}
+.modal .row{display:flex;gap:10px;justify-content:center}
+
+.toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-20px);z-index:70;background:linear-gradient(135deg,var(--p),var(--p3));padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:.3s;box-shadow:0 0 24px rgba(139,92,246,.5);max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.err{background:linear-gradient(135deg,#dc2626,#991b1b)}
+
+.fatal-error{position:fixed;inset:0;z-index:99;background:#070712;display:none;align-items:center;justify-content:center;padding:30px;text-align:center}
+.fatal-error.active{display:flex}
+.fatal-error .card{max-width:420px;padding:30px}
+.fatal-error h2{font-family:var(--font-head);color:#fca5a5;margin-bottom:10px;letter-spacing:.1em}
+
+@media(min-width:768px){
+  .quick-grid{grid-template-columns:repeat(6,1fr)}
+  .mon-grid{grid-template-columns:repeat(4,1fr)}
+}
+@media(max-width:480px){
+  .quick-grid{grid-template-columns:repeat(3,1fr)}
+  .clock-date{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="grad-fallback"></div>
+<video class="bg-video" id="bgVideo" autoplay muted loop playsinline preload="auto" poster="">
+  <source src="https://files.catbox.moe/y8ivyr.mp4" type="video/mp4">
+</video>
+<div class="bg-overlay"></div>
+<audio id="bgm" src="https://files.catbox.moe/uqlwhw.mp3" loop preload="auto"></audio>
+
+<div id="app">
+
+  <!-- FATAL ERROR -->
+  <div class="fatal-error" id="fatalError">
+    <div class="card">
+      <h2 class="head">DATABASE ERROR</h2>
+      <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:16px" id="fatalMsg">IndexedDB gagal diinisialisasi. Aplikasi tidak dapat berjalan. Coba muat ulang halaman atau gunakan browser modern.</p>
+      <button class="btn btn-primary" onclick="location.reload()">Muat Ulang</button>
+    </div>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="loginScreen">
+    <div class="card login-box">
+      <img class="logo-img" src="data:image/jpeg;base64,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" alt="KILLXBAN">
+      <div class="login-title glow-text">KILLXBAN</div>
+      <div class="login-sub">Control Panel</div>
+      <form id="loginForm" autocomplete="off">
+        <label class="field"><span>Username</span>
+          <input class="input mono" id="loginUser" type="text" placeholder="Masukkan username" required>
+        </label>
+        <label class="field"><span>Password</span>
+          <input class="input mono" id="loginPass" type="password" placeholder="Masukkan password" required>
+        </label>
+        <div class="login-error" id="loginError"></div>
+        <button type="submit" class="btn btn-primary" style="width:100%;padding:13px" id="loginBtn">MASUK</button>
+      </form>
+      <div class="seed-note">Akses hanya untuk akun terdaftar.<br>Tidak ada pendaftaran mandiri.</div>
+    </div>
+  </div>
+
+  <!-- SPLASH -->
+  <div id="splashScreen">
+    <video id="splashVideo" autoplay muted playsinline preload="auto" style="opacity:1">
+      <source src="https://files.catbox.moe/y6k03y.mp4" type="video/mp4">
+    </video>
+    <div class="splash-content">
+      <div class="splash-brand">KILLXBAN</div>
+      <div class="splash-tag">System Initialized</div>
+      <div class="splash-bar"><i id="splashBar"></i></div>
+    </div>
+  </div>
+
+  <!-- APP SHELL -->
+  <div id="appShell">
+    <div class="topbar">
+      <button class="hamburger" id="openSidebar" aria-label="Menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="avatar" id="topAvatar">D</div>
+      <div class="welcome">
+        <b id="topWelcome">SELAMAT DATANG</b>
+        <small id="topRole">—</small>
+      </div>
+      <div class="top-right">
+        <div class="clock-box">
+          <div class="clock-time" id="clockTime">00:00:00</div>
+          <div class="clock-date" id="clockDate">—</div>
+        </div>
+        <span class="live-badge"><span class="dot"></span>LIVE</span>
+      </div>
+    </div>
+
+    <!-- ===== HOME TAB ===== -->
+    <div class="page" id="tabHome">
+      <div class="banner-video-wrap">
+        <video autoplay muted loop playsinline preload="auto">
+          <source src="https://files.catbox.moe/2ghcsk.mp4" type="video/mp4">
+        </video>
+        <div class="cap"><b>SYSTEM ONLINE</b><small>All modules active · v1.0</small></div>
+      </div>
+
+      <div class="banner-photo" id="bannerWA" role="button" tabindex="0">
+        <div class="wa-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 20zm4.4-5.9c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4 0-.5.1-.7l.4-.5c.1-.2.1-.3 0-.5l-.7-1.7c-.2-.4-.4-.4-.5-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.8.8-.8 2s.8 2.3.9 2.5c.1.2 1.8 2.8 4.4 3.9 1.6.7 2.2.8 3 .6.5-.1 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1-.1-.1-.2-.2-.4-.3z"/></svg>
+        </div>
+        <div><b>OFFICIAL CHANNEL</b><small>Klik untuk buka saluran WhatsApp ↗</small></div>
+      </div>
+
+      <div class="section-title">Monitoring Server</div>
+      <div class="card" style="padding:14px;margin-bottom:6px">
+        <div class="mon-grid">
+          <div class="mon-item"><small>Server Speed</small><b id="monServer">— ms</b></div>
+          <div class="mon-item"><small>Your Internet</small><b id="monNet">— ms</b></div>
+          <div class="mon-item"><small>Server Type</small><b style="font-size:13px">LOCAL-NODE</b></div>
+          <div class="mon-item"><small>Strength</small>
+            <div class="strength stabil" id="monStrength"><span class="dot" style="background:var(--green)"></span>STABIL</div>
+          </div>
+        </div>
+        <button class="btn btn-ghost" style="margin-top:12px;width:100%;padding:8px;font-size:12px" id="refreshMon">ULANGI PENGUKURAN</button>
+      </div>
+
+      <div class="section-title">Identitas Akun</div>
+      <div class="card" style="padding:14px 16px;margin-bottom:6px">
+        <div class="id-row"><span>Username</span><b id="idUser">—</b></div>
+        <div class="id-row"><span>Password</span><b><span id="idPass">••••••••</span><button class="pw-toggle" id="togglePw">LIHAT</button></b></div>
+        <div class="id-row"><span>Login</span><b id="idLogin" class="mono" style="font-size:12px">—</b></div>
+        <div class="id-row"><span>Role</span><span id="idRole" class="badge">—</span></div>
+      </div>
+
+      <div class="section-title">Aksi Cepat</div>
+      <div class="quick-grid" id="quickGrid"></div>
+
+      <div class="warn-panel">
+        <b style="color:#fbbf24">PERINGATAN:</b> Fitur moderasi nomor harus digunakan secara bertanggung jawab dan tidak boleh digunakan untuk merugikan pihak lain.
+      </div>
+      <div class="note-panel">
+        <b style="color:#4ade80">CATATAN:</b> Gunakan aplikasi untuk membantu menangani spam, scam, penipuan, dan penyalahgunaan secara bertanggung jawab.
+      </div>
+
+      <div style="margin-top:16px">
+        <button class="btn" style="width:100%;padding:13px;border-color:rgba(245,158,11,.5);background:rgba(245,158,11,.1);color:#fcd34d" id="laporBug">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="6" width="8" height="14" rx="4"/><path d="M12 6V4M9 3h6M5 10H3M21 10h-2M5 16H3M21 16h-2M9 12h.01M15 12h.01"/></svg>
+          LAPOR BUG
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== TOOLS TAB ===== -->
+    <div class="page" id="tabTools" style="display:none">
+      <div class="section-title" style="margin-top:4px">Tools Center</div>
+      <input class="input tools-search" id="toolsSearch" placeholder="Cari tools...">
+      <div class="tools-grid" id="toolsGrid"></div>
+    </div>
+
+    <!-- ===== AI TAB ===== -->
+    <div class="page" id="tabAI" style="display:none">
+      <div class="ai-placeholder">
+        <div class="ai-orb">AI</div>
+        <h2 class="head" style="font-size:20px;letter-spacing:.15em;margin-bottom:8px">ASISTEN AI</h2>
+        <p style="color:var(--muted);font-size:14px;letter-spacing:.1em">Coming Soon — sedang dalam pengembangan.</p>
+      </div>
+    </div>
+
+    <!-- bottom nav -->
+    <div class="bottom-nav">
+      <button class="nav-btn active" data-tab="Home">
+        <span class="qi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+        HOME
+      </button>
+      <button class="nav-btn" data-tab="Tools">
+        <span class="qi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
+        TOOLS
+      </button>
+      <button class="nav-btn" data-tab="AI">
+        <span class="qi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="9" cy="9" r="1.5"/><circle cx="15" cy="15" r="1.5"/><path d="M9 15l6-6"/></svg></span>
+        AI
+      </button>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+  <aside id="sidebar">
+    <div class="side-user">
+      <div class="avatar" id="sideAvatar">D</div>
+      <div>
+        <b id="sideUser">—</b>
+        <span id="sideRole" class="badge" style="margin-top:4px">—</span>
+      </div>
+    </div>
+    <div class="side-menu" id="sideMenu"></div>
+    <div class="side-section">Akan Datang</div>
+    <div class="side-menu">
+      <button class="disabled"><span class="qi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8 5.8 21.3l2.4-7.4L2 9.4h7.6z"/></svg></span>Premium<span class="soon-tag">SOON</span></button>
+      <button class="disabled"><span class="qi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></span>Notifikasi<span class="soon-tag">SOON</span></button>
+    </div>
+    <div class="logout-btn">
+      <button class="btn btn-danger" style="width:100%" id="logoutBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        LOGOUT
+      </button>
+    </div>
+  </aside>
+
+  <!-- OVERLAYS -->
+  <!-- PROFILE -->
+  <div class="overlay" id="ovProfile">
+    <div class="overlay-head"><button class="back-btn" data-close>‹</button><h2>PROFILE</h2></div>
+    <div class="overlay-body">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="position:relative;display:inline-block">
+          <div class="avatar" id="profAvatar" style="width:84px;height:84px;font-size:30px;margin:0 auto">D</div>
+          <label style="position:absolute;bottom:-4px;right:-4px;width:32px;height:32px;border-radius:50%;background:var(--p);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 0 12px var(--p)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            <input type="file" accept="image/*" id="profPhoto" style="display:none">
+          </label>
+        </div>
+        <div style="margin-top:10px" id="profRoleBadge"></div>
+      </div>
+      <label class="field"><span>Username (read-only)</span><input class="input mono" id="profUser" disabled></label>
+      <label class="field"><span>Nickname</span><input class="input" id="profNick" placeholder="Nickname"></label>
+      <button class="btn btn-primary" style="width:100%;margin-bottom:22px" id="saveProfile">SIMPAN PROFIL</button>
+
+      <div class="section-title" style="margin-top:0">Ubah Password</div>
+      <label class="field"><span>Password Lama</span><input class="input mono" type="password" id="pwOld"></label>
+      <label class="field"><span>Password Baru</span><input class="input mono" type="password" id="pwNew"></label>
+      <label class="field"><span>Konfirmasi Password Baru</span><input class="input mono" type="password" id="pwNew2"></label>
+      <button class="btn" style="width:100%" id="savePw">UBAH PASSWORD</button>
+    </div>
+  </div>
+
+  <!-- CREATE ACCOUNT -->
+  <div class="overlay" id="ovCreate">
+    <div class="overlay-head"><button class="back-btn" data-close>‹</button><h2>BUAT AKUN</h2></div>
+    <div class="overlay-body">
+      <form id="createForm" autocomplete="off">
+        <label class="field"><span>Username</span><input class="input mono" id="crUser" required placeholder="3-20 karakter, huruf/angka/_"></label>
+        <label class="field"><span>Password</span><input class="input mono" type="password" id="crPass" required placeholder="Min. 6 karakter"></label>
+        <label class="field"><span>Konfirmasi Password</span><input class="input mono" type="password" id="crPass2" required></label>
+        <label class="field"><span>Nickname</span><input class="input" id="crNick" placeholder="Opsional"></label>
+        <label class="field"><span>Role</span><select class="input" id="crRole" required></select></label>
+        <label class="field"><span>Foto Profil (opsional)</span>
+          <input type="file" accept="image/*" id="crPhoto" class="input" style="padding:9px">
+        </label>
+        <button type="submit" class="btn btn-primary" style="width:100%;padding:13px">BUAT AKUN</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- DATABASE USER -->
+  <div class="overlay" id="ovDB">
+    <div class="overlay-head"><button class="back-btn" data-close>‹</button><h2>DATABASE USER</h2></div>
+    <div class="overlay-body">
+      <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <input class="input" id="dbSearch" placeholder="Cari username..." style="flex:1;min-width:160px">
+        <select class="input" id="dbFilter" style="width:auto;min-width:140px"><option value="">Semua Role</option></select>
+      </div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Username</th><th>Role</th><th>Dibuat Oleh</th><th>Tanggal</th><th>Status</th><th>Aksi</th></tr></thead>
+        <tbody id="dbBody"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- MODERASI NOMOR -->
+  <div class="overlay" id="ovMod">
+    <div class="overlay-head"><button class="back-btn" data-close>‹</button><h2>B4NNED WA</h2></div>
+    <div class="overlay-body">
+      <div style="display:flex;gap:10px;margin-bottom:14px">
+        <select class="input" id="modCC" style="width:110px;flex-shrink:0">
+          <option value="+62">+62</option><option value="+60">+60</option><option value="+65">+65</option>
+          <option value="+63">+63</option><option value="+66">+66</option><option value="+673">+673</option>
+          <option value="+1">+1</option><option value="+44">+44</option><option value="+81">+81</option>
+        </select>
+        <input class="input mono" id="modNum" placeholder="Nomor telepon (tanpa 0 di depan)">
+      </div>
+      <label class="field"><span>Jenis Proses</span>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="modTypeGroup">
+          <label style="display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:13px;font-weight:600"><input type="radio" name="modType" value="Spam" checked> Spam</label>
+          <label style="display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:13px;font-weight:600"><input type="radio" name="modType" value="Sementara"> Sementara</label>
+          <label style="display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:13px;font-weight:600"><input type="radio" name="modType" value="Permanen"> Permanen</label>
+          <label style="display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:13px;font-weight:600"><input type="radio" name="modType" value="Custom"> Custom</label>
+        </div>
+      </label>
+      <button class="btn btn-primary" style="width:100%;padding:13px" id="modStart">PROSES SEKARANG</button>
+
+      <div class="prog-panel" id="modPanel">
+        <div class="prog-counter"><span id="modCounter">0</span> / 1000</div>
+        <div class="prog-bar"><i id="modBar"></i></div>
+        <div class="prog-pct" id="modPct">0%</div>
+        <div class="prog-status" id="modStatus">MEMPROSES...</div>
+        <div class="prog-log" id="modLog"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UNBAN / BANDING -->
+  <div class="overlay" id="ovUnban">
+    <div class="overlay-head"><button class="back-btn" data-close>‹</button><h2>UNBAN / BANDING</h2></div>
+    <div class="overlay-body">
+      <p style="color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:16px">Ajukan banding pemulihan akun WhatsApp. Template email akan dibuat — Anda review dulu sebelum dikirim.</p>
+      <div style="display:flex;gap:10px;margin-bottom:14px">
+        <select class="input" id="ubCC" style="width:110px;flex-shrink:0">
+          <option value="+62">+62</option><option value="+60">+60</option><option value="+65">+65</option>
+          <option value="+63">+63</option><option value="+66">+66</option><option value="+673">+673</option>
+          <option value="+1">+1</option><option value="+44">+44</option><option value="+81">+81</option>
+        </select>
+        <input class="input mono" id="ubNum" placeholder="Nomor WhatsApp (tanpa 0 di depan)">
+      </div>
+      <label class="field"><span>Alasan / Penjelasan (opsional)</span><textarea class="input" id="ubReason" rows="3" placeholder="Jelaskan mengapa akun Anda harus dipulihkan..."></textarea></label>
+      <button class="btn btn-primary" style="width:100%;padding:13px" id="ubBtn">BUAT BANDING</button>
+    </div>
+  </div>
+
+  <!-- ACTIVITY LOG -->
+  <div class="overlay" id="ovLog">
+    <div class="overlay-head"><button class="back-btn" data-close>‹</button><h2>ACTIVITY LOG</h2></div>
+    <div class="overlay-body">
+      <input class="input" id="logSearch" placeholder="Cari aktivitas..." style="margin-bottom:14px">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>User</th><th>Aktivitas</th><th>Target</th><th>Waktu</th><th>Hasil</th></tr></thead>
+        <tbody id="logBody"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-backdrop" id="modal">
+  <div class="modal">
+    <h3 class="head" id="modalTitle">Konfirmasi</h3>
+    <p id="modalMsg">—</p>
+    <div class="row">
+      <button class="btn btn-ghost" id="modalCancel">Batal</button>
+      <button class="btn btn-danger" id="modalOk">Ya, Lanjutkan</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   KILLXBAN — vanilla JS + IndexedDB
+   ============================================================ */
+
+const WA_CHANNEL = "https://whatsapp.com/channel/0029Vb9JlGiJf05hmZf8mT0g";
+const DB_NAME = "killxban_db";
+const DB_VERSION = 1;
+
+/* Role hierarchy — higher index = more power */
+const ROLES = [
+  "Member","Full Up","Member Elite","VIP","VIP Elite",
+  "Reseller","Admin","Partner","TK","Owner","Developer"
+];
+const ROLE_LEVEL = {}; ROLES.forEach((r,i)=>ROLE_LEVEL[r]=i+1);
+const ROLE_COLORS = {
+  "Developer":"#f472b6","Owner":"#fb923c","TK":"#facc15","Partner":"#4ade80",
+  "Admin":"#38bdf8","Reseller":"#a78bfa","VIP Elite":"#c084fc","VIP":"#818cf8",
+  "Member Elite":"#34d399","Full Up":"#fbbf24","Member":"#94a3b8"
+};
+const roleLvl = r => ROLE_LEVEL[r] || 0;
+const canCreate = (creatorRole, targetRole) => {
+  if(creatorRole==="Developer") return true; // Developer can create anyone incl. Developer
+  return roleLvl(targetRole) < roleLvl(creatorRole);
+};
+const canAccessDB = r => ["Developer","Owner","TK","Partner"].includes(r);
+const canAccessLog = r => roleLvl(r) >= roleLvl("Reseller"); // Reseller+
+const canDelete = r => r==="Developer";
+const canChangeRole = r => r==="Developer";
+
+/* ---------- toast ---------- */
+let toastTimer=null;
+function toast(msg, isErr){
+  const t=document.getElementById("toast");
+  t.textContent=msg; t.classList.toggle("err", !!isErr);
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove("show"),2600);
+}
+
+/* ---------- modal confirm ---------- */
+function confirmModal(title, msg){
+  return new Promise(res=>{
+    const m=document.getElementById("modal");
+    document.getElementById("modalTitle").textContent=title;
+    document.getElementById("modalMsg").textContent=msg;
+    m.classList.add("active");
+    const ok=document.getElementById("modalOk"), cancel=document.getElementById("modalCancel");
+    const done=(v)=>{m.classList.remove("active");ok.onclick=null;cancel.onclick=null;res(v);};
+    ok.onclick=()=>done(true); cancel.onclick=()=>done(false);
+  });
+}
+function infoModal(title, msg){
+  return new Promise(res=>{
+    const m=document.getElementById("modal");
+    document.getElementById("modalTitle").textContent=title;
+    document.getElementById("modalMsg").textContent=msg;
+    const ok=document.getElementById("modalOk"), cancel=document.getElementById("modalCancel");
+    ok.textContent="Tutup"; cancel.style.display="none";
+    m.classList.add("active");
+    const done=()=>{m.classList.remove("active");ok.onclick=null;ok.textContent="Ya, Lanjutkan";cancel.style.display="";res();};
+    ok.onclick=done;
+  });
+}
+
+/* ---------- hash ---------- */
+async function hashPassword(pw){
+  const enc = new TextEncoder().encode(pw + "::killxban::salt");
+  try{
+    if(crypto && crypto.subtle){
+      const buf = await crypto.subtle.digest("SHA-256", enc);
+      return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+    }
+  }catch(e){/* fall through */}
+  // fallback simple hash
+  let h=5381;
+  const str = pw + "::killxban::salt";
+  for(let i=0;i<str.length;i++){ h=((h<<5)+h+str.charCodeAt(i))>>>0; }
+  return "fb_"+h.toString(16)+"_"+str.length;
+}
+
+/* ---------- IndexedDB ---------- */
+let db=null;
+function openDB(){
+  return new Promise((resolve,reject)=>{
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if(!d.objectStoreNames.contains("users")){
+        const us = d.createObjectStore("users",{keyPath:"id",autoIncrement:true});
+        us.createIndex("username","username",{unique:true});
+      }
+      if(!d.objectStoreNames.contains("activity")){
+        const ac = d.createObjectStore("activity",{keyPath:"id",autoIncrement:true});
+        ac.createIndex("username","username",{unique:false});
+      }
+    };
+    req.onsuccess = e => { db=e.target.result; resolve(db); };
+    req.onerror = e => reject(e.target.error);
+    req.onblocked = () => reject(new Error("DB blocked"));
+  });
+}
+function tx(store, mode){
+  return db.transaction(store, mode).objectStore(store);
+}
+function reqToPromise(r){
+  return new Promise((res,rej)=>{ r.onsuccess=e=>res(e.target.result); r.onerror=e=>rej(e.target.error); });
+}
+async function seedDeveloper(){
+  const count = await reqToPromise(tx("users","readonly").count());
+  if(count>0) return;
+  const ph = await hashPassword("20072011");
+  await reqToPromise(tx("users","readwrite").add({
+    username:"Depunkz", passwordHash:ph, nickname:"Depunkz",
+    role:"Developer", createdBy:"system", createdAt:Date.now(),
+    profilePhoto:"", status:"active"
+  }));
+  console.log("[KILLXBAN] Seeded Developer account");
+}
+const getUser = async uname => {
+  const idx = tx("users","readonly").index("username");
+  return reqToPromise(idx.get(uname));
+};
+const getAllUsers = async () => reqToPromise(tx("users","readonly").getAll());
+const addUser = async u => reqToPromise(tx("users","readwrite").add(u));
+const putUser = async u => reqToPromise(tx("users","readwrite").put(u));
+const deleteUser = async id => reqToPromise(tx("users","readwrite").delete(id));
+const addActivity = async entry => reqToPromise(tx("activity","readwrite").add(entry));
+const getAllActivity = async () => {
+  const all = await reqToPromise(tx("activity","readonly").getAll());
+  return all.sort((a,b)=>b.timestamp-a.timestamp);
+};
+async function logActivity(username, action, target, result){
+  try{ await addActivity({username, action, target, timestamp:Date.now(), result}); }catch(e){}
+}
+
+/* ---------- session ---------- */
+let currentUser=null; // full user object
+const SESS_KEY="killxban_session";
+const saveSession = uname => sessionStorage.setItem(SESS_KEY, uname);
+const clearSession = () => sessionStorage.removeItem(SESS_KEY);
+const getSession = () => sessionStorage.getItem(SESS_KEY);
+
+/* ---------- background music (autoplay on first gesture) ---------- */
+const bgm=document.getElementById("bgm");
+let bgmStarted=false;
+function tryPlayBGM(){
+  if(bgmStarted||!bgm) return;
+  try{ bgm.volume=0.6; }catch(e){}
+  const p=bgm.play();
+  if(p&&p.then){ p.then(()=>{bgmStarted=true;}).catch(()=>{}); }
+  else bgmStarted=true;
+}
+tryPlayBGM();
+["pointerdown","touchstart","click","keydown","focusin"].forEach(ev=>window.addEventListener(ev, tryPlayBGM, {once:true}));
+document.getElementById("loginUser").addEventListener("focus", tryPlayBGM);
+document.getElementById("loginUser").addEventListener("click", tryPlayBGM);
+document.getElementById("loginPass").addEventListener("focus", tryPlayBGM);
+
+/* error listeners on all media */
+document.querySelectorAll("video, audio").forEach(v=>{
+  v.addEventListener("error", e=>console.warn("[MEDIA ERROR]", v.id||v.src, e));
+});
+
+/* ---------- clock ---------- */
+const HARI=["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+const BULAN=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+function tickClock(){
+  const d=new Date();
+  const p=n=>String(n).padStart(2,"0");
+  document.getElementById("clockTime").textContent = p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds());
+  document.getElementById("clockDate").textContent = HARI[d.getDay()]+", "+d.getDate()+" "+BULAN[d.getMonth()]+" "+d.getFullYear();
+}
+setInterval(tickClock,1000); tickClock();
+
+/* ---------- monitoring ---------- */
+async function measureServerSpeed(){
+  const t0=performance.now();
+  try{ await reqToPromise(tx("users","readonly").count()); }catch(e){}
+  const ms=Math.max(1, Math.round(performance.now()-t0));
+  document.getElementById("monServer").textContent = ms+" ms";
+  return ms;
+}
+async function measureInternet(){
+  const el=document.getElementById("monNet");
+  el.textContent="...";
+  const t0=performance.now();
+  try{
+    await fetch("https://www.google.com/favicon.ico", {mode:"no-cors", cache:"no-store"});
+    const ms=Math.round(performance.now()-t0);
+    el.textContent=ms+" ms";
+    return ms;
+  }catch(e){
+    el.textContent="—";
+    return null;
+  }
+}
+function setStrength(serverMs, netMs){
+  const el=document.getElementById("monStrength");
+  const slow = (serverMs && serverMs>200) || (netMs && netMs>800);
+  if(slow){
+    el.className="strength lambat";
+    el.innerHTML='<span class="dot" style="background:var(--red)"></span>LAMBAT';
+  }else{
+    el.className="strength stabil";
+    el.innerHTML='<span class="dot" style="background:var(--green)"></span>STABIL';
+  }
+}
+async function runMonitoring(){
+  const s=await measureServerSpeed();
+  const n=await measureInternet();
+  setStrength(s,n);
+}
+
+/* ---------- badge helper ---------- */
+function roleBadge(role){
+  const c=ROLE_COLORS[role]||"#94a3b8";
+  return '<span class="badge" style="color:'+c+';border-color:'+c+';background:'+c+'22">'+role+'</span>';
+}
+function avatarHTML(user, size){
+  if(user.profilePhoto){
+    return '<img class="avatar" src="'+user.profilePhoto+'" style="width:'+size+'px;height:'+size+'px" alt="avatar">';
+  }
+  const letter=(user.nickname||user.username||"?").charAt(0).toUpperCase();
+  return '<div class="avatar" style="width:'+size+'px;height:'+size+'px;font-size:'+Math.round(size*0.4)+'px">'+letter+'</div>';
+}
+function setAvatar(el, user){
+  if(user.profilePhoto){ el.innerHTML='<img src="'+user.profilePhoto+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover" alt="">'; }
+  else { el.textContent=(user.nickname||user.username||"?").charAt(0).toUpperCase(); }
+}
+
+/* ---------- screens ---------- */
+function showLogin(){
+  document.getElementById("loginScreen").style.display="flex";
+  document.getElementById("appShell").classList.remove("active");
+  document.getElementById("splashScreen").classList.remove("active");
+}
+function showApp(){
+  document.getElementById("loginScreen").style.display="none";
+  document.getElementById("appShell").classList.add("active");
+  renderUserUI();
+  renderQuickActions();
+  renderTools();
+  renderSideMenu();
+  runMonitoring();
+  switchTab("Home");
+}
+
+/* ---------- splash after login ---------- */
+function showSplashThenApp(){
+  const sp=document.getElementById("splashScreen");
+  const vid=document.getElementById("splashVideo");
+  const bar=document.getElementById("splashBar");
+  sp.classList.add("active");
+  let done=false;
+  const finish=()=>{ if(done) return; done=true; sp.classList.remove("active"); showApp(); };
+  // progress bar animation
+  const start=performance.now();
+  let raf;
+  function frame(now){
+    const p=Math.min(1,(now-start)/7000);
+    bar.style.width=(p*100)+"%";
+    if(p<1 && !done) raf=requestAnimationFrame(frame);
+  }
+  raf=requestAnimationFrame(frame);
+  let dur=120000, fbTimer=null;
+  const setFallback=()=>{ if(fbTimer) clearTimeout(fbTimer); fbTimer=setTimeout(finish, Math.max(dur,3000)+500); };
+  setFallback();
+  try{
+    vid.currentTime=0;
+    const playP=vid.play(); if(playP&&playP.catch) playP.catch(()=>{});
+    vid.addEventListener("loadedmetadata", ()=>{ if(vid.duration&&isFinite(vid.duration)){ dur=vid.duration*1000; setFallback(); } }, {once:true});
+    vid.addEventListener("ended", finish, {once:true});
+    vid.addEventListener("error", finish, {once:true});
+  }catch(e){}
+}
+
+/* ---------- render user UI ---------- */
+function renderUserUI(){
+  const u=currentUser;
+  document.getElementById("topWelcome").textContent="SELAMAT DATANG "+(u.nickname||u.username).toUpperCase();
+  document.getElementById("topRole").textContent=u.role;
+  setAvatar(document.getElementById("topAvatar"), u);
+  setAvatar(document.getElementById("sideAvatar"), u);
+  document.getElementById("sideUser").textContent=u.username;
+  document.getElementById("sideRole").outerHTML=roleBadge(u.role).replace('<span','<span id="sideRole"');
+  // identity card
+  document.getElementById("idUser").textContent=u.username;
+  document.getElementById("idLogin").textContent=new Date(u.loginAt||Date.now()).toLocaleString("id-ID");
+  document.getElementById("idRole").outerHTML=roleBadge(u.role).replace('<span','<span id="idRole"');
+}
+
+/* ---------- quick actions ---------- */
+const QUICK_DEFS=[
+  {id:"mod", label:"B4NNED", icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>', roles:["Admin","Partner","TK","Owner","Developer"]},
+  {id:"unban", label:"Unban", icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>', roles:["Reseller","Admin","Partner","TK","Owner","Developer"]},
+  {id:"profile", label:"Profile", icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>', roles:ROLES},
+  {id:"create", label:"Buat Akun", icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>', roles:["Reseller","Admin","Partner","TK","Owner","Developer"]},
+  {id:"db", label:"Database", icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>', roles:["Partner","TK","Owner","Developer"]},
+  {id:"log", label:"Activity", icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>', roles:["Reseller","Admin","Partner","TK","Owner","Developer"]}
+];
+function renderQuickActions(){
+  const g=document.getElementById("quickGrid"); g.innerHTML="";
+  QUICK_DEFS.filter(d=>d.roles.includes(currentUser.role)).forEach(d=>{
+    const b=document.createElement("button");
+    b.className="quick-btn";
+    b.innerHTML='<span class="qi">'+d.icon+'</span>'+d.label;
+    b.onclick=()=>openOverlay(d.id);
+    g.appendChild(b);
+  });
+}
+
+/* ---------- tools tab ---------- */
+const TOOL_DEFS=[
+  {id:"mod", big:true, title:"B4NNED WA", desc:"Proses nomor spam / scam", icon:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>', roles:["Admin","Partner","TK","Owner","Developer"]},
+  {id:"unban", title:"UNBAN / BANDING", desc:"Ajukan pemulihan akun", icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>', roles:["Reseller","Admin","Partner","TK","Owner","Developer"]},
+  {id:"profile", title:"PROFILE", desc:"Ubah data & password", icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>', roles:ROLES},
+  {id:"create", title:"BUAT AKUN", desc:"Tambah user baru", icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>', roles:["Reseller","Admin","Partner","TK","Owner","Developer"]},
+  {id:"db", title:"DATABASE USER", desc:"Kelola semua akun", icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>', roles:["Partner","TK","Owner","Developer"]},
+  {id:"log", title:"ACTIVITY LOG", desc:"Riwayat aktivitas", icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>', roles:["Reseller","Admin","Partner","TK","Owner","Developer"]},
+  {id:"soon1", soon:true, title:"SERVER BOOST", desc:"Coming soon", icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>', roles:ROLES},
+  {id:"soon2", soon:true, title:"API ACCESS", desc:"Coming soon", icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>', roles:ROLES}
+];
+function renderTools(filter){
+  const g=document.getElementById("toolsGrid"); g.innerHTML="";
+  const f=(filter||"").toLowerCase();
+  TOOL_DEFS.filter(d=>d.roles.includes(currentUser.role))
+    .filter(d=>!f || d.title.toLowerCase().includes(f) || d.desc.toLowerCase().includes(f))
+    .forEach(d=>{
+      const c=document.createElement("div");
+      c.className="tool-card"+(d.big?" big":"")+(d.soon?" soon":"");
+      c.innerHTML='<span class="t-icon">'+d.icon+'</span><b>'+d.title+'</b><small>'+d.desc+'</small>';
+      if(!d.soon) c.onclick=()=>openOverlay(d.id);
+      g.appendChild(c);
+    });
+}
+document.getElementById("toolsSearch").addEventListener("input", e=>renderTools(e.target.value));
+
+/* ---------- side menu ---------- */
+const SIDE_DEFS=[
+  {id:"profile", label:"Profile", icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>', roles:ROLES},
+  {id:"create", label:"Buat Akun", icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>', roles:["Reseller","Admin","Partner","TK","Owner","Developer"]},
+  {id:"db", label:"Database User", icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>', roles:["Partner","TK","Owner","Developer"]},
+  {id:"mod", label:"B4NNED WA", icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>', roles:["Admin","Partner","TK","Owner","Developer"]},
+  {id:"unban", label:"Unban / Banding", icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>', roles:["Reseller","Admin","Partner","TK","Owner","Developer"]},
+  {id:"log", label:"Activity Log", icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>', roles:["Reseller","Admin","Partner","TK","Owner","Developer"]}
+];
+function renderSideMenu(){
+  const m=document.getElementById("sideMenu"); m.innerHTML="";
+  SIDE_DEFS.filter(d=>d.roles.includes(currentUser.role)).forEach(d=>{
+    const b=document.createElement("button");
+    b.innerHTML='<span class="qi">'+d.icon+'</span>'+d.label;
+    b.onclick=()=>{ closeSidebar(); openOverlay(d.id); };
+    m.appendChild(b);
+  });
+}
+
+/* ---------- tabs ---------- */
+function switchTab(name){
+  ["Home","Tools","AI"].forEach(t=>{
+    document.getElementById("tab"+t).style.display = (t===name)?"":"none";
+  });
+  document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active", b.dataset.tab===name));
+}
+document.querySelectorAll(".nav-btn").forEach(b=>b.addEventListener("click",()=>switchTab(b.dataset.tab)));
+
+/* ---------- sidebar ---------- */
+function openSidebar(){ document.getElementById("sidebar").classList.add("active"); document.getElementById("drawerBackdrop").classList.add("active"); }
+function closeSidebar(){ document.getElementById("sidebar").classList.remove("active"); document.getElementById("drawerBackdrop").classList.remove("active"); }
+document.getElementById("openSidebar").addEventListener("click", openSidebar);
+document.getElementById("drawerBackdrop").addEventListener("click", closeSidebar);
+
+/* ---------- overlays ---------- */
+const OVERLAYS={profile:"ovProfile",create:"ovCreate",db:"ovDB",mod:"ovMod",unban:"ovUnban",log:"ovLog"};
+function openOverlay(id){
+  const ov=document.getElementById(OVERLAYS[id]);
+  if(!ov) return;
+  // permission re-check (JS enforcement, not just UI)
+  const u=currentUser;
+  if(id==="db" && !canAccessDB(u.role)){ toast("Anda tidak punya akses Database User", true); return; }
+  if(id==="log" && !canAccessLog(u.role)){ toast("Anda tidak punya akses Activity Log", true); return; }
+  if(id==="create" && roleLvl(u.role)<roleLvl("Reseller")){ toast("Role Anda tidak bisa membuat akun", true); return; }
+  if(id==="mod" && roleLvl(u.role)<roleLvl("Admin")){ toast("Anda tidak punya akses B4NNED WA", true); return; }
+  if(id==="unban" && roleLvl(u.role)<roleLvl("Reseller")){ toast("Anda tidak punya akses Unban", true); return; }
+  ov.classList.add("active");
+  if(id==="profile") loadProfile();
+  if(id==="create") loadCreateRoleOptions();
+  if(id==="db") loadDB();
+  if(id==="log") loadLog();
+}
+function closeOverlay(el){ el.classList.remove("active"); }
+document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>closeOverlay(b.closest(".overlay"))));
+
+/* ---------- profile ---------- */
+let profPhotoData="";
+function loadProfile(){
+  const u=currentUser;
+  setAvatar(document.getElementById("profAvatar"), u);
+  document.getElementById("profRoleBadge").innerHTML=roleBadge(u.role);
+  document.getElementById("profUser").value=u.username;
+  document.getElementById("profNick").value=u.nickname||"";
+  profPhotoData=u.profilePhoto||"";
+}
+document.getElementById("profPhoto").addEventListener("change", e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    // resize via canvas
+    const img=new Image();
+    img.onload=()=>{
+      const c=document.createElement("canvas"); const size=160;
+      c.width=size; c.height=size;
+      const ctx=c.getContext("2d");
+      const s=Math.min(img.width,img.height);
+      ctx.drawImage(img,(img.width-s)/2,(img.height-s)/2,s,s,0,0,size,size);
+      profPhotoData=c.toDataURL("image/jpeg",0.8);
+      document.getElementById("profAvatar").innerHTML='<img src="'+profPhotoData+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';
+      toast("Foto dipilih — simpan profil untuk menerapkan");
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(f);
+});
+document.getElementById("saveProfile").addEventListener("click", async ()=>{
+  const nick=document.getElementById("profNick").value.trim();
+  currentUser.nickname=nick;
+  currentUser.profilePhoto=profPhotoData;
+  try{
+    await putUser(currentUser);
+    await logActivity(currentUser.username,"Edit Profile",currentUser.username,"Sukses");
+    toast("Profil disimpan");
+    renderUserUI();
+  }catch(e){ toast("Gagal menyimpan", true); }
+});
+document.getElementById("savePw").addEventListener("click", async ()=>{
+  const oldP=document.getElementById("pwOld").value, newP=document.getElementById("pwNew").value, newP2=document.getElementById("pwNew2").value;
+  if(!oldP||!newP){ toast("Isi semua field password", true); return; }
+  if(newP.length<6){ toast("Password baru min. 6 karakter", true); return; }
+  if(newP!==newP2){ toast("Konfirmasi password tidak cocok", true); return; }
+  const oldHash=await hashPassword(oldP);
+  if(oldHash!==currentUser.passwordHash){ toast("Password lama salah", true); return; }
+  currentUser.passwordHash=await hashPassword(newP);
+  await putUser(currentUser);
+  await logActivity(currentUser.username,"Change Password",currentUser.username,"Sukses");
+  document.getElementById("pwOld").value="";document.getElementById("pwNew").value="";document.getElementById("pwNew2").value="";
+  toast("Password berhasil diubah");
+});
+
+/* ---------- create account ---------- */
+function loadCreateRoleOptions(){
+  const sel=document.getElementById("crRole"); sel.innerHTML="";
+  const u=currentUser;
+  const allowed = ROLES.filter(r=>canCreate(u.role, r));
+  allowed.forEach(r=>{
+    const o=document.createElement("option"); o.value=r; o.textContent=r; sel.appendChild(o);
+  });
+}
+let crPhotoData="";
+document.getElementById("crPhoto").addEventListener("change", e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      const c=document.createElement("canvas"); const size=160; c.width=size;c.height=size;
+      const ctx=c.getContext("2d"); const s=Math.min(img.width,img.height);
+      ctx.drawImage(img,(img.width-s)/2,(img.height-s)/2,s,s,0,0,size,size);
+      crPhotoData=c.toDataURL("image/jpeg",0.8);
+      toast("Foto profil terpilih");
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(f);
+});
+document.getElementById("createForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const u=currentUser;
+  const uname=document.getElementById("crUser").value.trim();
+  const pass=document.getElementById("crPass").value;
+  const pass2=document.getElementById("crPass2").value;
+  const nick=document.getElementById("crNick").value.trim();
+  const role=document.getElementById("crRole").value;
+  if(!/^[a-zA-Z0-9_]{3,20}$/.test(uname)){ toast("Username: 3-20 karakter, huruf/angka/_", true); return; }
+  if(pass.length<6){ toast("Password min. 6 karakter", true); return; }
+  if(pass!==pass2){ toast("Konfirmasi password tidak cocok", true); return; }
+  if(!canCreate(u.role, role)){ toast("Anda tidak berwenang membuat role "+role, true); return; }
+  const exists=await getUser(uname);
+  if(exists){ toast("Username sudah terdaftar", true); return; }
+  try{
+    await addUser({
+      username:uname, passwordHash:await hashPassword(pass), nickname:nick||uname,
+      role, createdBy:u.username, createdAt:Date.now(),
+      profilePhoto:crPhotoData, status:"active"
+    });
+    await logActivity(u.username,"Create Account",uname+" ("+role+")","Sukses");
+    toast("Akun "+uname+" dibuat");
+    document.getElementById("createForm").reset();
+    crPhotoData="";
+  }catch(err){ toast("Gagal membuat akun: "+(err.message||err), true); }
+});
+
+/* ---------- database user ---------- */
+function loadDB(){
+  const filt=document.getElementById("dbFilter");
+  if(filt.options.length<=1){
+    ROLES.forEach(r=>{ const o=document.createElement("option"); o.value=r; o.textContent=r; filt.appendChild(o); });
+  }
+  renderDB();
+}
+async function renderDB(){
+  const body=document.getElementById("dbBody"); body.innerHTML="";
+  const search=(document.getElementById("dbSearch").value||"").toLowerCase();
+  const roleF=document.getElementById("dbFilter").value;
+  const u=currentUser;
+  let all=await getAllUsers();
+  // visibility: Developer sees all; others see only below their level
+  if(u.role!=="Developer"){
+    all=all.filter(x=>roleLvl(x.role)<roleLvl(u.role));
+  }
+  all=all.filter(x=>(!search||x.username.toLowerCase().includes(search)||(x.createdBy||"").toLowerCase().includes(search)) && (!roleF||x.role===roleF));
+  all.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  if(!all.length){ body.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">Tidak ada data</td></tr>'; return; }
+  all.forEach(x=>{
+    const tr=document.createElement("tr");
+    const statusBadge = x.status==="inactive"
+      ? '<span class="badge" style="color:#fca5a5;border-color:rgba(239,68,68,.5);background:rgba(239,68,68,.1)">NONAKTIF</span>'
+      : '<span class="badge" style="color:#86efac;border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.1)">AKTIF</span>';
+    let actions='<div class="row-actions">';
+    // toggle status (DB-access roles can toggle)
+    actions+='<button class="mini-btn '+(x.status==="inactive"?"ok":"")+'" data-act="toggle" data-id="'+x.id+'">'+(x.status==="inactive"?"AKTIFKAN":"NONAKTIF")+'</button>';
+    if(canChangeRole(u.role)){
+      const opts=ROLES.map(r=>'<option value="'+r+'"'+(r===x.role?" selected":"")+'>'+r+'</option>').join("");
+      actions+='<select class="mini-sel" data-act="role" data-id="'+x.id+'">'+opts+'</select>';
+    }
+    if(canDelete(u.role) && x.username!==u.username){
+      actions+='<button class="mini-btn danger" data-act="del" data-id="'+x.id+'">HAPUS</button>';
+    }
+    actions+='</div>';
+    tr.innerHTML='<td class="mono">'+x.username+'</td><td>'+roleBadge(x.role)+'</td><td class="mono" style="font-size:12px">'+(x.createdBy||"—")+'</td><td style="font-size:12px">'+(x.createdAt?new Date(x.createdAt).toLocaleDateString("id-ID"):"—")+'</td><td>'+statusBadge+'</td><td>'+actions+'</td>';
+    body.appendChild(tr);
+  });
+  body.querySelectorAll("[data-act='toggle']").forEach(b=>b.addEventListener("click", async ()=>{
+    const id=+b.dataset.id; const target=all.find(x=>x.id===id); if(!target) return;
+    target.status = target.status==="active"?"inactive":"active";
+    await putUser(target);
+    await logActivity(currentUser.username,"Ubah Status",target.username,target.status);
+    toast("Status "+target.username+" → "+target.status);
+    renderDB();
+  }));
+  body.querySelectorAll("[data-act='role']").forEach(s=>s.addEventListener("change", async ()=>{
+    const id=+s.dataset.id; const target=all.find(x=>x.id===id); if(!target) return;
+    const newRole=s.value;
+    if(!canChangeRole(currentUser.role)){ toast("Tidak berwenang", true); renderDB(); return; }
+    const old=target.role; target.role=newRole;
+    await putUser(target);
+    await logActivity(currentUser.username,"Ubah Role",target.username,old+" → "+newRole);
+    toast("Role "+target.username+" → "+newRole);
+    renderDB();
+  }));
+  body.querySelectorAll("[data-act='del']").forEach(b=>b.addEventListener("click", async ()=>{
+    const id=+b.dataset.id; const target=all.find(x=>x.id===id); if(!target) return;
+    const ok=await confirmModal("Hapus Akun", "Yakin hapus akun "+target.username+"? Tindakan ini tidak dapat dibatalkan.");
+    if(!ok) return;
+    await deleteUser(id);
+    await logActivity(currentUser.username,"Hapus Akun",target.username,"Sukses");
+    toast("Akun "+target.username+" dihapus");
+    renderDB();
+  }));
+}
+document.getElementById("dbSearch").addEventListener("input", renderDB);
+document.getElementById("dbFilter").addEventListener("change", renderDB);
+
+/* ---------- moderasi nomor ---------- */
+let modState="idle"; // idle | running
+let modRaf=null;
+const LOG_LINES=["Inisialisasi modul moderasi...","Memverifikasi format nomor...","Membangun koneksi terenkripsi...","Mengirim sinyal verifikasi...","Memeriksa status nomor...","Mengumpulkan metadata...","Menganalisis pola aktivitas...","Kueri database referensi...","Pencocokan pola spam...","Validasi laporan komunitas...","Memperbarui indeks...","Sinkronisasi node lokal...","Finalisasi hasil moderasi..."];
+document.getElementById("modStart").addEventListener("click", async ()=>{
+  if(modState==="running") return;
+  const cc=document.getElementById("modCC").value;
+  const num=document.getElementById("modNum").value.trim().replace(/\D/g,"");
+  if(!num || num.length<6){ toast("Nomor telepon tidak valid", true); return; }
+  const type=document.querySelector("input[name='modType']:checked").value;
+  const full=cc+num;
+  modState="running";
+  const btn=document.getElementById("modStart"); btn.disabled=true;
+  const panel=document.getElementById("modPanel"); panel.classList.add("active");
+  const counter=document.getElementById("modCounter"), bar=document.getElementById("modBar"), pct=document.getElementById("modPct"), log=document.getElementById("modLog"), status=document.getElementById("modStatus");
+  log.innerHTML="";
+  status.textContent="MEMPROSES "+type.toUpperCase()+"...";
+  const DURATION=7000;
+  const start=performance.now();
+  let lastLog=0;
+  function frame(now){
+    const p=Math.min(1,(now-start)/DURATION);
+    const count=Math.floor(p*1000);
+    counter.textContent=count;
+    bar.style.width=(p*100)+"%";
+    pct.textContent=Math.floor(p*100)+"%";
+    if(now-lastLog>350){
+      lastLog=now;
+      const line=LOG_LINES[Math.floor(Math.random()*LOG_LINES.length)];
+      const div=document.createElement("div");
+      div.textContent="["+String(count).padStart(4,"0")+"] "+line;
+      log.appendChild(div); log.scrollTop=log.scrollHeight;
+    }
+    if(p<1){ modRaf=requestAnimationFrame(frame); }
+    else {
+      counter.textContent="1000"; bar.style.width="100%"; pct.textContent="100%";
+      status.textContent="SELESAI"; status.style.color="var(--green)";
+      modState="idle"; btn.disabled=false;
+      logActivity(currentUser.username,"Proses Nomor",full+" ("+type+")","Sukses").then(()=>{});
+      setTimeout(()=>{
+        infoModal("PROSES BERHASIL", "Nomor "+full+" telah diproses dengan mode "+type+".\nCounter: 1000/1000. Riwayat tersimpan di Activity Log.");
+      },400);
+    }
+  }
+  modRaf=requestAnimationFrame(frame);
+});
+
+/* ---------- unban / banding ---------- */
+document.getElementById("ubBtn").addEventListener("click", async ()=>{
+  const cc=document.getElementById("ubCC").value;
+  const num=document.getElementById("ubNum").value.trim().replace(/\D/g,"");
+  if(!num || num.length<6){ toast("Nomor WhatsApp tidak valid", true); return; }
+  const full=cc+num;
+  const reason=document.getElementById("ubReason").value.trim()||"Saya yakin akun saya tidak melanggar ketentuan layanan dan mohon diperiksa kembali.";
+  const subject=encodeURIComponent("Permohonan Pemeriksaan & Pemulihan Akun WhatsApp "+full);
+  const body=encodeURIComponent(
+    "Kepada Tim Dukungan WhatsApp,\n\n"+
+    "Saya mengajukan permohonan pemeriksaan terhadap akun WhatsApp saya.\n\n"+
+    "Nomor Akun: "+full+"\n"+
+    "Permintaan: Pemeriksaan ulang status akun\n"+
+    "Penjelasan: "+reason+"\n\n"+
+    "Permintaan Pemulihan: Mohon agar akun saya dapat dipulihkan/dibuka kembali apabila ditemukan bahwa pembatasan tersebut adalah kesalahan.\n\n"+
+    "Demikian permohonan ini saya sampaikan. Atas perhatiannya saya ucapkan terima kasih.\n\n"+
+    "Hormat saya,\n"+currentUser.username
+  );
+  await logActivity(currentUser.username,"Buat Banding",full,"Template dibuat");
+  window.location.href="mailto:support@support.whatsapp.com?subject="+subject+"&body="+body;
+  toast("Template banding dibuat — review di email client Anda");
+});
+
+/* ---------- activity log ---------- */
+async function loadLog(){
+  const body=document.getElementById("logBody"); body.innerHTML="";
+  const search=(document.getElementById("logSearch").value||"").toLowerCase();
+  let all=await getAllActivity();
+  if(search) all=all.filter(x=> (x.username||"").toLowerCase().includes(search)||(x.action||"").toLowerCase().includes(search)||(x.target||"").toLowerCase().includes(search));
+  if(!all.length){ body.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">Belum ada aktivitas</td></tr>'; return; }
+  all.slice(0,200).forEach(x=>{
+    const tr=document.createElement("tr");
+    const resColor = (x.result||"").includes("Sukses")||(x.result||"").includes("Template")||(x.result||"").includes("active") ? "#86efac" : "#fca5a5";
+    tr.innerHTML='<td class="mono" style="font-size:12px">'+(x.username||"—")+'</td><td>'+(x.action||"—")+'</td><td style="font-size:12px;word-break:break-all">'+(x.target||"—")+'</td><td style="font-size:11px;color:var(--muted);white-space:nowrap">'+new Date(x.timestamp).toLocaleString("id-ID")+'</td><td style="color:'+resColor+';font-size:12px">'+(x.result||"—")+'</td>';
+    body.appendChild(tr);
+  });
+}
+document.getElementById("logSearch").addEventListener("input", loadLog);
+
+/* ---------- password reveal ---------- */
+let pwVisible=false;
+document.getElementById("togglePw").addEventListener("click", ()=>{
+  pwVisible=!pwVisible;
+  const plain=sessionStorage.getItem("killxban_pw_plain")||"";
+  document.getElementById("idPass").textContent = pwVisible ? (plain||"(tidak tersedia)") : "••••••••";
+  document.getElementById("togglePw").textContent = pwVisible?"SEMBUNYIKAN":"LIHAT";
+});
+
+/* ---------- logout ---------- */
+document.getElementById("logoutBtn").addEventListener("click", async ()=>{
+  const ok=await confirmModal("Logout", "Yakin keluar dari akun "+currentUser.username+"?");
+  if(!ok) return;
+  await logActivity(currentUser.username,"Logout",currentUser.username,"Sukses");
+  clearSession();
+  sessionStorage.removeItem("killxban_pw_plain");
+  if(bgm){try{bgm.pause();}catch(e){}} bgmStarted=false;
+  currentUser=null;
+  closeSidebar();
+  showLogin();
+  toast("Anda telah logout");
+});
+
+/* ---------- login ---------- */
+document.getElementById("loginForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const err=document.getElementById("loginError");
+  const btn=document.getElementById("loginBtn");
+  err.textContent=""; btn.disabled=true; btn.textContent="MEMERIKSA...";
+  const uname=document.getElementById("loginUser").value.trim();
+  const pass=document.getElementById("loginPass").value;
+  try{
+    const user=await getUser(uname);
+    if(!user){ err.textContent="Username tidak ditemukan"; btn.disabled=false; btn.textContent="MASUK"; return; }
+    if(user.status==="inactive"){ err.textContent="Akun tidak aktif"; btn.disabled=false; btn.textContent="MASUK"; return; }
+    const ph=await hashPassword(pass);
+    if(ph!==user.passwordHash){ err.textContent="Password salah"; btn.disabled=false; btn.textContent="MASUK"; return; }
+    user.loginAt=Date.now();
+    currentUser=user;
+    saveSession(uname);
+    sessionStorage.setItem("killxban_pw_plain", pass);
+    await logActivity(uname,"Login",uname,"Sukses");
+    document.getElementById("loginForm").reset();
+    btn.disabled=false; btn.textContent="MASUK";
+    showSplashThenApp();
+  }catch(err2){
+    err.textContent="Terjadi kesalahan sistem";
+    btn.disabled=false; btn.textContent="MASUK";
+  }
+});
+
+/* ---------- external links ---------- */
+const openWA=()=>window.open(WA_CHANNEL,"_blank");
+document.getElementById("bannerWA").addEventListener("click", openWA);
+document.getElementById("bannerWA").addEventListener("keydown", e=>{ if(e.key==="Enter") openWA(); });
+document.getElementById("laporBug").addEventListener("click", openWA);
+document.getElementById("refreshMon").addEventListener("click", runMonitoring);
+
+/* ---------- init ---------- */
+async function init(){
+  try{
+    await openDB();
+    await seedDeveloper();
+  }catch(e){
+    console.error("[KILLXBAN] DB init failed", e);
+    document.getElementById("fatalMsg").textContent = "IndexedDB gagal diinisialisasi: "+(e.message||e)+". Aplikasi membutuhkan browser yang mendukung IndexedDB (mode privat mungkin memblokir).";
+    document.getElementById("fatalError").classList.add("active");
+    return;
+  }
+  // restore session
+  const sess=getSession();
+  if(sess){
+    const u=await getUser(sess);
+    if(u && u.status==="active"){ currentUser=u; showApp(); return; }
+    else clearSession();
+  }
+  showLogin();
+}
+init();
+
+})();
+</script>
+</body>
+</html>
